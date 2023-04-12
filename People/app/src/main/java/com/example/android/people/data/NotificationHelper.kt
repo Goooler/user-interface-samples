@@ -136,11 +136,7 @@ class NotificationHelper(private val context: Context) {
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
         updateShortcuts(chat.contact)
-        val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
-        } else {
-            IconCompat.createWithContentUri(chat.contact.iconUri)
-        }
+        val icon = IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
         val person = Person.Builder().setName(chat.contact.name).setIcon(icon).build()
         val contentUri = "https://android.example.com/chat/${chat.contact.id}".toUri()

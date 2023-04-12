@@ -27,6 +27,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.core.graphics.drawable.IconCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -103,11 +104,8 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
                 }
                 navigationController.updateAppBar { name, icon ->
                     name.text = contact.name
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
-                    } else {
-                        icon.setImageIcon(Icon.createWithContentUri(contact.iconUri))
-                    }
+                    val imageIcon = IconCompat.createWithAdaptiveBitmapContentUri(contact.iconUri).toIcon(requireContext())
+                    icon.setImageIcon(imageIcon)
                     startPostponedEnterTransition()
                 }
             }
