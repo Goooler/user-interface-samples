@@ -16,6 +16,7 @@
 package com.example.android.people.ui.main
 
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -47,7 +48,9 @@ class ContactAdapter(
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
         val contact: Contact = getItem(position)
-        holder.binding.icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            holder.binding.icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+        }
         holder.binding.name.text = contact.name
     }
 }

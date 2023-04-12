@@ -18,6 +18,7 @@ package com.example.android.people.ui.chat
 import android.content.Intent
 import android.content.LocusId
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Bundle
 import android.transition.TransitionInflater
 import android.view.Menu
@@ -93,12 +94,18 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
             if (contact == null) {
                 Toast.makeText(view.context, "Contact not found", Toast.LENGTH_SHORT).show()
                 parentFragmentManager.popBackStack()
-                requireActivity().setLocusContext(null, null)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    requireActivity().setLocusContext(null, null)
+                }
             } else {
-                requireActivity().setLocusContext(LocusId(contact.shortcutId), null)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    requireActivity().setLocusContext(LocusId(contact.shortcutId), null)
+                }
                 navigationController.updateAppBar { name, icon ->
                     name.text = contact.name
-                    icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+                    }
                     startPostponedEnterTransition()
                 }
             }

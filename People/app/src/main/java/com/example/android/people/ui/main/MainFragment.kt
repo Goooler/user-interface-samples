@@ -18,6 +18,7 @@ package com.example.android.people.ui.main
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.LocusId
+import android.os.Build
 import android.os.Bundle
 import android.transition.TransitionInflater
 import android.view.View
@@ -84,6 +85,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         // Differentiate the main view from a chat view (ChatFragment) for  content capture.
         // See https://developer.android.com/reference/androidx/core/content/LocusIdCompat
-        requireActivity().setLocusContext(LocusId("mainFragment"), null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            requireActivity().setLocusContext(LocusId("mainFragment"), null)
+        }
     }
 }
