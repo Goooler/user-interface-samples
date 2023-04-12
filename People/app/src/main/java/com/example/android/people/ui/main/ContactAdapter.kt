@@ -50,6 +50,8 @@ class ContactAdapter(
         val contact: Contact = getItem(position)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             holder.binding.icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+        } else {
+            holder.binding.icon.setImageIcon(Icon.createWithContentUri(contact.iconUri))
         }
         holder.binding.name.text = contact.name
     }

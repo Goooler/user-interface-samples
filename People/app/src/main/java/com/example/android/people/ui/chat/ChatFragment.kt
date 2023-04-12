@@ -105,6 +105,8 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
                     name.text = contact.name
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         icon.setImageIcon(Icon.createWithAdaptiveBitmapContentUri(contact.iconUri))
+                    } else {
+                        icon.setImageIcon(Icon.createWithContentUri(contact.iconUri))
                     }
                     startPostponedEnterTransition()
                 }
