@@ -19,14 +19,20 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
+import androidx.core.content.LocusIdCompat
 import androidx.core.content.getSystemService
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import com.example.android.people.MainActivity
@@ -64,6 +70,55 @@ class NotificationHelper(private val context: Context) {
                 }
             )
         }
+        updateShortcuts(null)
+    }
+
+    @WorkerThread
+    fun updateShortcuts(importantContact: Contact?) {
+        var shortcuts = Contact.CONTACTS.map { contact ->
+            val icon = IconCompat.createWithAdaptiveBitmap(
+                context.resources.assets.open(contact.icon).use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            )
+            // Create a dynamic shortcut for each of the contacts.
+            // The same shortcut ID will be used when we show a bubble notification.
+            ShortcutInfoCompat.Builder(context, contact.shortcutId)
+                .setLocusId(LocusIdCompat(contact.shortcutId))
+                .setActivity(ComponentName(context, MainActivity::class.java))
+                .setShortLabel(contact.name)
+                .setIcon(icon)
+                .setLongLived(true)
+                .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+                .setIntent(
+                    Intent(context, MainActivity::class.java)
+                        .setAction(Intent.ACTION_VIEW)
+                        .setData(
+                            Uri.parse(
+                                "https://android.example.com/chat/${contact.id}"
+                            )
+                        )
+                )
+                .setPerson(
+                    Person.Builder()
+                        .setName(contact.name)
+                        .setIcon(icon)
+                        .build()
+                )
+                .build()
+        }
+        // Move the important contact to the front of the shortcut list.
+        if (importantContact != null) {
+            shortcuts = shortcuts.sortedByDescending { it.id == importantContact.shortcutId }
+        }
+        // Truncate the list if we can't show all of our contacts.
+        val maxCount = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
+        if (shortcuts.size > maxCount) {
+            shortcuts = shortcuts.take(maxCount)
+        }
+        for (shortcut in shortcuts) {
+            ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
+        }
     }
 
     private fun flagUpdateCurrent(mutable: Boolean): Int {
@@ -80,6 +135,7 @@ class NotificationHelper(private val context: Context) {
 
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
+        updateShortcuts(chat.contact)
         val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
         } else {
@@ -117,6 +173,10 @@ class NotificationHelper(private val context: Context) {
             .setContentTitle(chat.contact.name)
             .setSmallIcon(R.drawable.ic_message)
             .setCategory(Notification.CATEGORY_MESSAGE)
+            .setShortcutId(chat.contact.shortcutId)
+            // This ID helps the intelligence services of the device to correlate this notification
+            // with the corresponding dynamic shortcut.
+            .setLocusId(LocusIdCompat(chat.contact.shortcutId))
             .addPerson(person)
             .setShowWhen(true)
             // The content Intent is used when the user clicks on the "Open Content" icon button on
