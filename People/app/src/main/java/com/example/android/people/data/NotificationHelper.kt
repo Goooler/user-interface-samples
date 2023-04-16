@@ -22,6 +22,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.WorkerThread
@@ -78,7 +79,6 @@ class NotificationHelper(private val context: Context) {
                 .setLocusId(LocusIdCompat(contact.shortcutId))
                 .setActivity(ComponentName(context, MainActivity::class.java))
                 .setShortLabel(contact.name)
-                // Seems must use bitmap icon here.
                 .setIcon(person.icon)
                 .setLongLived(true)
                 .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
@@ -113,11 +113,11 @@ class NotificationHelper(private val context: Context) {
 
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
-        val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
-        } else {
-            IconCompat.createWithContentUri(chat.contact.iconUri)
-        }
+        val icon = IconCompat.createWithAdaptiveBitmap(
+            context.resources.assets.open(chat.contact.icon).use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+        )
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
         val person = Person.Builder().setName(chat.contact.name).setIcon(icon).build()
         addSingleShortcut(chat.contact, person)
