@@ -78,6 +78,7 @@ class NotificationHelper(private val context: Context) {
                 .setLocusId(LocusIdCompat(contact.shortcutId))
                 .setActivity(ComponentName(context, MainActivity::class.java))
                 .setShortLabel(contact.name)
+                // Seems must use bitmap icon here.
                 .setIcon(person.icon)
                 .setLongLived(true)
                 .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
