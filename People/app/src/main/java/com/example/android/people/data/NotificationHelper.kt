@@ -71,7 +71,7 @@ class NotificationHelper(private val context: Context) {
     }
 
     @WorkerThread
-    fun addSingleShortcut(importantContact: Contact, person: Person) {
+    fun addSingleShortcut(importantContact: Contact, icon: IconCompat) {
         val shortcuts = listOf(importantContact).map { contact ->
             // Create a dynamic shortcut for each of the contacts.
             // The same shortcut ID will be used when we show a bubble notification.
@@ -79,7 +79,7 @@ class NotificationHelper(private val context: Context) {
                 .setLocusId(LocusIdCompat(contact.shortcutId))
                 .setActivity(ComponentName(context, MainActivity::class.java))
                 .setShortLabel(contact.name)
-                .setIcon(person.icon)
+                .setIcon(icon)
                 .setLongLived(true)
                 .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
                 .setIntent(
@@ -91,7 +91,6 @@ class NotificationHelper(private val context: Context) {
                             )
                         )
                 )
-                .setPerson(person)
                 .build()
         }
         for (shortcut in shortcuts) {
@@ -120,7 +119,7 @@ class NotificationHelper(private val context: Context) {
         )
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
         val person = Person.Builder().setName(chat.contact.name).setIcon(icon).build()
-        addSingleShortcut(chat.contact, person)
+        addSingleShortcut(chat.contact, icon)
         val contentUri = "https://android.example.com/chat/${chat.contact.id}".toUri()
 
         // Let's add some more content to the notification in case it falls back to a normal
