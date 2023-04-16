@@ -68,12 +68,11 @@ class NotificationHelper(private val context: Context) {
                 }
             )
         }
-        updateShortcuts(null)
     }
 
     @WorkerThread
-    fun updateShortcuts(importantContact: Contact?) {
-        var shortcuts = Contact.CONTACTS.map { contact ->
+    fun addSingleShortcut(importantContact: Contact) {
+        val shortcuts = listOf(importantContact).map { contact ->
             val icon = IconCompat.createWithAdaptiveBitmap(
                 context.resources.assets.open(contact.icon).use { input ->
                     BitmapFactory.decodeStream(input)
@@ -105,15 +104,6 @@ class NotificationHelper(private val context: Context) {
                 )
                 .build()
         }
-        // Move the important contact to the front of the shortcut list.
-        if (importantContact != null) {
-            shortcuts = shortcuts.sortedByDescending { it.id == importantContact.shortcutId }
-        }
-        // Truncate the list if we can't show all of our contacts.
-        val maxCount = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
-        if (shortcuts.size > maxCount) {
-            shortcuts = shortcuts.take(maxCount)
-        }
         for (shortcut in shortcuts) {
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
         }
@@ -133,7 +123,7 @@ class NotificationHelper(private val context: Context) {
 
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
-        updateShortcuts(chat.contact)
+        addSingleShortcut(chat.contact)
         val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
         } else {
