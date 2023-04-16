@@ -22,7 +22,6 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.WorkerThread
@@ -71,20 +70,15 @@ class NotificationHelper(private val context: Context) {
     }
 
     @WorkerThread
-    fun addSingleShortcut(importantContact: Contact) {
+    fun addSingleShortcut(importantContact: Contact, person: Person) {
         val shortcuts = listOf(importantContact).map { contact ->
-            val icon = IconCompat.createWithAdaptiveBitmap(
-                context.resources.assets.open(contact.icon).use { input ->
-                    BitmapFactory.decodeStream(input)
-                }
-            )
             // Create a dynamic shortcut for each of the contacts.
             // The same shortcut ID will be used when we show a bubble notification.
             ShortcutInfoCompat.Builder(context, contact.shortcutId)
                 .setLocusId(LocusIdCompat(contact.shortcutId))
                 .setActivity(ComponentName(context, MainActivity::class.java))
                 .setShortLabel(contact.name)
-                .setIcon(icon)
+                .setIcon(person.icon)
                 .setLongLived(true)
                 .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
                 .setIntent(
@@ -96,12 +90,7 @@ class NotificationHelper(private val context: Context) {
                             )
                         )
                 )
-                .setPerson(
-                    Person.Builder()
-                        .setName(contact.name)
-                        .setIcon(icon)
-                        .build()
-                )
+                .setPerson(person)
                 .build()
         }
         for (shortcut in shortcuts) {
@@ -123,7 +112,6 @@ class NotificationHelper(private val context: Context) {
 
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
-        addSingleShortcut(chat.contact)
         val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             IconCompat.createWithAdaptiveBitmapContentUri(chat.contact.iconUri)
         } else {
@@ -131,6 +119,7 @@ class NotificationHelper(private val context: Context) {
         }
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
         val person = Person.Builder().setName(chat.contact.name).setIcon(icon).build()
+        addSingleShortcut(chat.contact, person)
         val contentUri = "https://android.example.com/chat/${chat.contact.id}".toUri()
 
         // Let's add some more content to the notification in case it falls back to a normal
