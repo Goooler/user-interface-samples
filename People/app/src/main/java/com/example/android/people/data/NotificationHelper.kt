@@ -28,6 +28,7 @@ import android.os.Build
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.getSystemService
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -37,6 +38,7 @@ import androidx.core.net.toUri
 import com.example.android.people.BubbleActivity
 import com.example.android.people.MainActivity
 import com.example.android.people.R
+import com.example.android.people.ReplyReceiver
 
 /**
  * Handles all operations related to [Notification].
@@ -195,6 +197,27 @@ class NotificationHelper(private val context: Context) {
                         .setData(contentUri),
                     flagUpdateCurrent(mutable = false)
                 )
+            )
+            // Direct Reply
+            .addAction(
+                NotificationCompat.Action
+                    .Builder(
+                        IconCompat.createWithResource(context, R.drawable.ic_send),
+                        context.getString(R.string.label_reply),
+                        PendingIntent.getBroadcast(
+                            context,
+                            REQUEST_CONTENT,
+                            Intent(context, ReplyReceiver::class.java).setData(contentUri),
+                            flagUpdateCurrent(mutable = true)
+                        )
+                    )
+                    .addRemoteInput(
+                        RemoteInput.Builder(ReplyReceiver.KEY_TEXT_REPLY)
+                            .setLabel(context.getString(R.string.hint_input))
+                            .build()
+                    )
+                    .setAllowGeneratedReplies(true)
+                    .build()
             )
             // Let's add some more content to the notification in case it falls back to a normal
             // notification.
