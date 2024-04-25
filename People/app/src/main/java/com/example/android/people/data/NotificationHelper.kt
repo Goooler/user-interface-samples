@@ -200,6 +200,10 @@ class NotificationHelper(private val context: Context) {
             // notification.
             .setStyle(messagingStyle)
             .setWhen(chat.messages.last().timestamp)
+            // Compat older APIs without notification channels for ensuring
+            // message notifications can show on the top of home screen.
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
         // Don't sound/vibrate if an update to an existing notification.
         if (update) {
             builder.setOnlyAlertOnce(true)
