@@ -34,6 +34,7 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
+import com.example.android.people.BubbleActivity
 import com.example.android.people.MainActivity
 import com.example.android.people.R
 
@@ -122,6 +123,15 @@ class NotificationHelper(private val context: Context) {
         addSingleShortcut(chat.contact, icon)
         val contentUri = "https://android.example.com/chat/${chat.contact.id}".toUri()
 
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            REQUEST_BUBBLE,
+            // Launch BubbleActivity as the expanded bubble.
+            Intent(context, BubbleActivity::class.java)
+                .setAction(Intent.ACTION_VIEW)
+                .setData(contentUri),
+            flagUpdateCurrent(mutable = true)
+        )
         // Let's add some more content to the notification in case it falls back to a normal
         // notification.
         val messagingStyle = NotificationCompat.MessagingStyle(user)
@@ -144,6 +154,24 @@ class NotificationHelper(private val context: Context) {
         }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_NEW_MESSAGES)
+            // A notification can be shown as a bubble by calling setBubbleMetadata()
+            .setBubbleMetadata(
+                NotificationCompat.BubbleMetadata.Builder(pendingIntent, icon)
+                    // The height of the expanded bubble.
+                    .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
+                    .apply {
+                        // When the bubble is explicitly opened by the user, we can show the bubble
+                        // automatically in the expanded state. This works only when the app is in
+                        // the foreground.
+                        if (fromUser) {
+                            setAutoExpandBubble(true)
+                        }
+                        if (fromUser || update) {
+                            setSuppressNotification(true)
+                        }
+                    }
+                    .build()
+            )
             // The user can turn off the bubble in system settings. In that case, this notification
             // is shown as a normal notification instead of a bubble. Make sure that this
             // notification works as a normal notification as well.
@@ -183,7 +211,13 @@ class NotificationHelper(private val context: Context) {
         notificationManager.cancel(id.toInt())
     }
 
-    fun canBubble(contact: Contact): Boolean = false
+    fun canBubble(contact: Contact): Boolean {
+        val channel = notificationManager.getNotificationChannel(
+            CHANNEL_NEW_MESSAGES,
+            contact.shortcutId
+        )
+        return notificationManager.areBubblesAllowed() || channel?.canBubble() == true
+    }
 
     fun updateNotification(chat: Chat, chatId: Long, prepopulatedMsgs: Boolean) {
         if (!prepopulatedMsgs) {
