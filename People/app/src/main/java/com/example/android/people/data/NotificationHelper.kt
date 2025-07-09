@@ -22,7 +22,6 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.WorkerThread
@@ -115,11 +114,7 @@ class NotificationHelper(private val context: Context) {
 
     @WorkerThread
     fun showNotification(chat: Chat, fromUser: Boolean, update: Boolean = false) {
-        val icon = IconCompat.createWithAdaptiveBitmap(
-            context.resources.assets.open(chat.contact.icon).use { input ->
-                BitmapFactory.decodeStream(input)
-            }
-        )
+        val icon = IconCompat.createWithResource(context, R.drawable.chrome)
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
         val person = Person.Builder().setName(chat.contact.name).setIcon(icon).build()
         addSingleShortcut(chat.contact, icon)
